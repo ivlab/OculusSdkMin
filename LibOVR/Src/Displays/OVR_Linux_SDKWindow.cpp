@@ -240,17 +240,37 @@ DistortionRotation SDKWindow::getRotation(const ovrHmd& hmd)
     }
 }
 
-
 bool SDKWindow::getVisualFromDrawable(GLXDrawable drawable, XVisualInfo* vinfoOut)
 {
-    _XDisplay* display = glXGetCurrentDisplay();
+    struct _XDisplay* display = glXGetCurrentDisplay();
 
-    unsigned int value;
-    glXQueryDrawable(display, drawable, GLX_FBCONFIG_ID, &value);
-    XVisualInfo* chosen = glXGetVisualFromFBConfig(display, reinterpret_cast<GLXFBConfig>(value));
-    *vinfoOut = *chosen;
-    return true;
+    static int attribs[] =
+    {
+        GLX_RENDER_TYPE, GLX_RGBA_BIT,
+        GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+        GLX_DOUBLEBUFFER, true,
+        GLX_RED_SIZE, 1,
+        GLX_GREEN_SIZE, 1,
+        GLX_BLUE_SIZE, 1,
+        None
+    };
+
+    int screen;
+    glXQueryContext(display, glXGetCurrentContext(), GLX_SCREEN, &screen);
+
+    int numElems;
+    GLXFBConfig* config = glXChooseFBConfig(display, screen, attribs, &numElems);
+    if (numElems > 0)
+    {
+        XVisualInfo* chosen = glXGetVisualFromFBConfig(display, *config);
+        *vinfoOut = *chosen;
+        XFree(config);
+        return true;
+    }
+
+    return false;
 }
+
 
 SDKWindow::SDKWindow(const ovrHmd& hmd) :
     mXDisplay(NULL),
