@@ -31,4 +31,4 @@ Firmware
 # system, you should place those in a global gitignore file in your root 
 # directory.
 # See: https://help.github.com/articles/ignoring-files
-
+*~
